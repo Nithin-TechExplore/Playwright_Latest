@@ -1,13 +1,45 @@
 name: Playwright Cucumber Tests
 
-# Trigger the workflow on push or pull request to main/master branch
+# Trigger the workflow
 on:
   push:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
-  # Allow manual trigger from GitHub UI
+  
+  # Manual trigger with custom inputs
   workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Test Environment'
+        required: true
+        default: 'uat'
+        type: choice
+        options:
+          - uat
+          - qa
+      browser:
+        description: 'Browser to use'
+        required: true
+        default: 'chrome'
+        type: choice
+        options:
+          - chrome
+          - firefox
+          - webkit
+          - edge
+          - chromium
+      tags:
+        description: 'Cucumber Tags (e.g., @e2eUAT or @smoke)'
+        required: false
+        default: '@e2eUAT'
+        type: string
+  
+  # Schedule: Run every day at 4:00 PM IST (10:30 AM UTC)
+  # IST is UTC+5:30, so 4:00 PM IST = 10:30 AM UTC
+  schedule:
+   # - cron: '30 10 * * *'  # Runs at 10:30 AM UTC = 4:00 PM IST
+    - cron: '58 10 * * *'  # Runs at 10:30 AM UTC = 4:00 PM IST
 
 jobs:
   test:
@@ -22,7 +54,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'  # or '20' based on your preference
+          node-version: '20'
 
       # Step 3: Install dependencies
       - name: Install dependencies
@@ -30,37 +62,68 @@ jobs:
 
       # Step 4: Install Playwright browsers
       - name: Install Playwright Browsers
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install --with-deps chromium firefox webkit
 
-      # Step 5: Run the Cucumber tests
+      # Step 5: Display run configuration
+      - name: Display Test Configuration
+        run: |
+          echo "🚀 Test Execution Details:"
+          echo "=========================="
+          echo "Environment: ${{ github.event.inputs.environment || 'uat' }}"
+          echo "Browser: ${{ github.event.inputs.browser || 'chrome' }}"
+          echo "Tags: ${{ github.event.inputs.tags || '@e2eUAT' }}"
+          echo "Trigger: ${{ github.event_name }}"
+          echo "Triggered by: ${{ github.actor }}"
+          echo "=========================="
+
+      # Step 6: Run the Cucumber tests
       - name: Run Cucumber Tests
-        run: npx cross-env env=uat browser=chrome cucumber-js --config config/cucumber.js --tags @e2eUAT
-        continue-on-error: true  # Continue even if tests fail to generate report
+        run: |
+          npx cross-env \
+            env=${{ github.event.inputs.environment || 'uat' }} \
+            browser=${{ github.event.inputs.browser || 'chrome' }} \
+            cucumber-js \
+            --config config/cucumber.js \
+            --tags "${{ github.event.inputs.tags || '@e2eUAT' }}"
+        continue-on-error: true
 
-      # Step 6: Generate the report
+      # Step 7: Generate the report
       - name: Generate Report
         run: npm run report
-        if: always()  # Always run this step even if previous steps failed
+        if: always()
 
-      # Step 7: Upload test report as artifact
+      # Step 8: Upload test report as artifact
       - name: Upload Test Report
-        uses: actions/upload-artifact@v4
-        if: always()  # Always upload report even if tests failed
-        with:
-          name: cucumber-report
-          path: |
-            reports/
-            test-results/
-          retention-days: 30  # Keep reports for 30 days
-
-      # Step 8: Upload screenshots/videos if any
-      - name: Upload Screenshots and Videos
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: test-artifacts
+          name: cucumber-report-${{ github.event.inputs.environment || 'uat' }}-${{ github.run_number }}
+          path: |
+            reports/
+            test-results/
+          retention-days: 30
+
+      # Step 9: Upload screenshots/videos if any
+      - name: Upload Test Artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-artifacts-${{ github.event.inputs.environment || 'uat' }}-${{ github.run_number }}
           path: |
             screenshots/
             videos/
             traces/
           retention-days: 30
+
+      # Step 10: Post test summary
+      - name: Test Summary
+        if: always()
+        run: |
+          echo "## Test Execution Complete! ✅" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment**: ${{ github.event.inputs.environment || 'uat' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Browser**: ${{ github.event.inputs.browser || 'chrome' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Tags**: ${{ github.event.inputs.tags || '@e2eUAT' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Run Number**: #${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📥 Download the reports from the Artifacts section below!" >> $GITHUB_STEP_SUMMARY
