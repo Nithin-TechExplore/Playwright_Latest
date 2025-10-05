@@ -1,0 +1,1 @@
+product: "//div[text()='item']//ancestor::div[@class='inventory_item_label']//following-sibling::div[@class='pricebar']//button"

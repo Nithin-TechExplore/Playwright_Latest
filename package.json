@@ -1,0 +1,26 @@
+{
+  "dependencies": {
+    "@cucumber/cucumber": "^12.2.0",
+    "@playwright/test": "^1.55.1",
+    "dotenv": "^17.2.3",
+    "fs": "^0.0.1-security",
+    "moment": "^2.30.1",
+    "os": "^0.1.2",
+    "path": "^0.12.7"
+  },
+  "devDependencies": {
+    "multiple-cucumber-html-reporter": "^3.9.3"
+  },
+    "scripts": {
+    "test": "cucumber-js --config config/cucumber.js",
+    "test:e2e": "cross-env env=qa BROWSER=chrome cucumber-js --config config/cucumber.js --tags @e2e",
+    "test:chrome": "cross-env env=qa BROWSER=chrome cucumber-js --config config/cucumber.js",
+    "test:edge": "cross-env env=qa BROWSER=edge cucumber-js --config config/cucumber.js",
+    "test:chromium": "cross-env env=qa BROWSER=chromium cucumber-js --config config/cucumber.js",
+    "report": "node generate-report.js",
+    "test:report": "npm run test && npm run report",
+    "test:e2e:report": "npm run test:e2e && npm run report",
+    "test:chrome:report": "npm run test:chrome && npm run report",
+    "clean:reports": "rimraf reports/multi-json-html reports/html-report"
+  }
+}
