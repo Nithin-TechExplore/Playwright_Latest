@@ -11,7 +11,7 @@
   "devDependencies": {
     "multiple-cucumber-html-reporter": "^3.9.3"
   },
-    "scripts": {
+  "scripts": {
     "test": "cucumber-js --config config/cucumber.js",
     "test:e2e": "cross-env env=qa BROWSER=chrome cucumber-js --config config/cucumber.js --tags @e2e",
     "test:chrome": "cross-env env=qa BROWSER=chrome cucumber-js --config config/cucumber.js",
