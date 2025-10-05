@@ -3,25 +3,25 @@ name: Playwright Cucumber Tests
 # Trigger the workflow
 on:
   push:
-    branches: [ main, master ]
+    branches: [main, master]
   pull_request:
-    branches: [ main, master ]
-  
+    branches: [main, master]
+
   # Manual trigger with custom inputs
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Test Environment'
+        description: "Test Environment"
         required: true
-        default: 'uat'
+        default: "uat"
         type: choice
         options:
           - uat
           - qa
       browser:
-        description: 'Browser to use'
+        description: "Browser to use"
         required: true
-        default: 'chrome'
+        default: "chrome"
         type: choice
         options:
           - chrome
@@ -30,21 +30,21 @@ on:
           - edge
           - chromium
       tags:
-        description: 'Cucumber Tags (e.g., @e2eUAT or @smoke)'
+        description: "Cucumber Tags (e.g., @e2eUAT or @smoke)"
         required: false
-        default: '@e2eUAT'
+        default: "@e2eUAT"
         type: string
-  
+
   # Schedule: Run every day at 4:00 PM IST (10:30 AM UTC)
   # IST is UTC+5:30, so 4:00 PM IST = 10:30 AM UTC
   schedule:
-   # - cron: '30 10 * * *'  # Runs at 10:30 AM UTC = 4:00 PM IST
-    - cron: '58 10 * * *'  # Runs at 10:30 AM UTC = 4:00 PM IST
+    # - cron: '30 10 * * *'  # Runs at 10:30 AM UTC = 4:00 PM IST
+    - cron: "58 10 * * *" # Runs at 10:30 AM UTC = 4:00 PM IST
 
 jobs:
   test:
     runs-on: ubuntu-latest
-    
+
     steps:
       # Step 1: Checkout the repository code
       - name: Checkout code
@@ -54,7 +54,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
 
       # Step 3: Install dependencies
       - name: Install dependencies
@@ -76,8 +76,12 @@ jobs:
           echo "Triggered by: ${{ github.actor }}"
           echo "=========================="
 
-      # Step 6: Run the Cucumber tests
+      # Step 6: Run Cucumber tests
       - name: Run Cucumber Tests
+        env:
+          # Use non-prefixed secrets since they're shared across environments
+          TEST_USERNAME: ${{ secrets.USERNAME }}
+          TEST_PASSWORD: ${{ secrets.PASSWORD }}
         run: |
           npx cross-env \
             env=${{ github.event.inputs.environment || 'uat' }} \
