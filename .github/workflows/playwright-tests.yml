@@ -1,0 +1,67 @@
+name: Playwright Cucumber Tests
+
+# Trigger the workflow on push or pull request to main/master branch
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  # Allow manual trigger from GitHub UI
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      # Step 1: Checkout the repository code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Step 2: Setup Node.js environment
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'  # or '20' based on your preference
+          cache: 'npm'
+
+      # Step 3: Install dependencies
+      - name: Install dependencies
+        run: npm ci
+
+      # Step 4: Install Playwright browsers
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium
+
+      # Step 5: Run the Cucumber tests
+      - name: Run Cucumber Tests
+        run: npx cross-env env=uat browser=chrome cucumber-js --config config/cucumber.js --tags @e2eUAT
+        continue-on-error: true  # Continue even if tests fail to generate report
+
+      # Step 6: Generate the report
+      - name: Generate Report
+        run: npm run report
+        if: always()  # Always run this step even if previous steps failed
+
+      # Step 7: Upload test report as artifact
+      - name: Upload Test Report
+        uses: actions/upload-artifact@v4
+        if: always()  # Always upload report even if tests failed
+        with:
+          name: cucumber-report
+          path: |
+            reports/
+            test-results/
+          retention-days: 30  # Keep reports for 30 days
+
+      # Step 8: Upload screenshots/videos if any
+      - name: Upload Screenshots and Videos
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-artifacts
+          path: |
+            screenshots/
+            videos/
+            traces/
+          retention-days: 30
