@@ -67,8 +67,8 @@ BeforeAll(async() => {
             options.channel = 'chromium';
             global.browser = await chromium.launch(
             {
-                executablePath: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',               
-                 headless: false,
+                executablePath: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',    
+                headless: false,
                  args: ['--start-maximized'],
                 //args: ['--window-size=1920,1080','--window-position=0,0'],
             });
@@ -85,9 +85,10 @@ BeforeAll(async() => {
             })
             break;
             case 'chromium':
-    
+             const isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
+
                 global.browser = await chromium.launch({
-                    headless:false,
+                    headless:isCI,
                     args: ['--window-size=1920,1080','--window-position=0,0'],
     
                 })
