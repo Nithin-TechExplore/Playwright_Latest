@@ -37,9 +37,9 @@ on:
 
   # Schedule: Run every day at 4:00 PM IST (10:30 AM UTC)
   # IST is UTC+5:30, so 4:00 PM IST = 10:30 AM UTC
-  schedule:
+  # schedule:
     # - cron: '30 10 * * *'  # Runs at 10:30 AM UTC = 4:00 PM IST
-    - cron: "40 11 * * *" # Runs at 11:40 AM UTC = 5:10 PM IST
+    #- cron: "40 11 * * *" # Runs at 11:40 AM UTC = 5:10 PM IST
 
 jobs:
   test:
